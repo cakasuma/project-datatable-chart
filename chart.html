@@ -12,10 +12,15 @@
     >
       <canvas id="pie"></canvas>
     </div>
+    <button onclick="applyFilter()">Apply filter (> 14 years)</button>
+    <button onclick="deleteFilter()">Delete filter</button>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       let chart;
+      let savedLabels;
+      let savedGroupData;
+      let savedData;
       // dom content loaded
       document.addEventListener("DOMContentLoaded", function () {
         // get from identity.json
@@ -31,6 +36,11 @@
               })
             );
 
+            const labels = Array.from(yearDiff).map(
+              (year) => `${year} employment years`
+            );
+            savedLabels = labels;
+
             const groupedData = data.reduce((acc, item) => {
               const date = new Date(item["Start date"]);
               const year = date.getFullYear();
@@ -43,13 +53,13 @@
               return acc;
             }, {});
 
+            savedGroupData = groupedData;
+
             const dataFinal = Array.from(yearDiff).map(
               (year) => groupedData[year]
             );
 
-            const labels = Array.from(yearDiff).map(
-              (year) => `${year} employment years`
-            );
+            savedData = dataFinal;
 
             chart = new Chart(document.getElementById("pie"), {
               type: "pie",
@@ -68,6 +78,33 @@
             });
           });
       });
+
+      function applyFilter() {
+        if (chart) {
+          const yearDiff = new Set(
+            savedLabels
+              .map((item) => item.split(" ")[0])
+              .filter((item) => {
+                return item > 14;
+              })
+          );
+          chart.data.labels = Array.from(yearDiff).map(
+            (year) => `${year} employment years`
+          );
+          chart.data.datasets[0].data = Array.from(yearDiff).map(
+            (year) => savedGroupData[year]
+          );
+          chart.update();
+        }
+      }
+
+      function deleteFilter() {
+        if (chart) {
+          chart.data.labels = savedLabels;
+          chart.data.datasets[0].data = savedData;
+          chart.update();
+        }
+      }
     </script>
   </body>
 </html>
