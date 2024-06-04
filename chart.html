@@ -15,20 +15,58 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      new Chart(document.getElementById("pie"), {
-        type: "pie",
-        data: {
-          labels: ["2016", "2017", "2018", "2019"],
-          datasets: [
-            {
-              label: "Acquisitions by year",
-              data: [200, 500, 250, 100],
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-        },
+      let chart;
+      // dom content loaded
+      document.addEventListener("DOMContentLoaded", function () {
+        // get from identity.json
+        fetch("./identity.json")
+          .then((res) => res.json())
+          .then((data) => {
+            const yearDiff = new Set(
+              data.map((item) => {
+                const date = new Date(item["Start date"]);
+                const year = date.getFullYear();
+                const today = new Date().getFullYear();
+                return today - year;
+              })
+            );
+
+            const groupedData = data.reduce((acc, item) => {
+              const date = new Date(item["Start date"]);
+              const year = date.getFullYear();
+              const today = new Date().getFullYear();
+              const diff = today - year;
+              if (!acc[diff]) {
+                acc[diff] = 1;
+              }
+              acc[diff]++;
+              return acc;
+            }, {});
+
+            const dataFinal = Array.from(yearDiff).map(
+              (year) => groupedData[year]
+            );
+
+            const labels = Array.from(yearDiff).map(
+              (year) => `${year} employment years`
+            );
+
+            chart = new Chart(document.getElementById("pie"), {
+              type: "pie",
+              data: {
+                labels,
+                datasets: [
+                  {
+                    label: " Jumlah pegawai",
+                    data: dataFinal,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+              },
+            });
+          });
       });
     </script>
   </body>
